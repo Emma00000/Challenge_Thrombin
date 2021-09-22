@@ -46,17 +46,17 @@ def analysis(Ypred, testY):
     print(classification_report(Ypred, testY, target_names = ['A', 'I']) + '\n')
 
 # Cargar el data set de entrenamiento
-with open('./Thrombin/thrombin.data', 'r') as file:
+with open('Thrombin/thrombin.data', 'r') as file:
   train_set = file.readlines()
 print('Se recuperaron: ', str(len(train_set)), ' líneas en el vector de entrenamiento.')
 
 
 #Cargamos el data set de prueba
-with open('./Thrombin-2/Thrombin.testset', 'r') as file:
+with open('Thrombin_2/Thrombin.testset', 'r') as file:
   test_set = file.readlines()
 print('Se recuperaron: ', str(len(test_set)), ' líneas en el vector de prueba.')
 
-with open('./Thrombin/ThrombinKey', 'r') as file:
+with open('Thrombin_2/ThrombinKey', 'r') as file:
   test_class = file.readlines()
 print('Se recuperaron: ', str(len(test_class)), ' clases en el vector de prueba.')
 
