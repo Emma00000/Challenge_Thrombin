@@ -95,40 +95,12 @@ print('Proporciones en los datos:')
 print(sorted(Counter(train_class).items()))
 print(sorted(Counter(test_class).items()))
 
-"""### Clasificación inicial sin modificaciones"""
-
-# Clasificación inicial lineal
-
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(train_data, train_class)
-
-Ypred = svm_classifier.predict(test_data)
-
-analysis(Ypred, test_class)
-
-# Clasificación inicial rbf
-
-svm_classifier = SVC(kernel = "rbf")
-svm_classifier.fit(train_data, train_class)
-
-Ypred = svm_classifier.predict(test_data)
-
-analysis(Ypred, test_class)
-
-"""Aunque un kernel "rbf" parecía ser más prometedor por usar un híper plano no lineal que se pudiera acoplar mejor a los datos desbalanceados (y posiblemente incrustados entre clases), los resultados muestran una mejor clasificación con un kernel "linear". Adicionalmente, se probaron técnicas de reducción de dimensionalidad con kernel "rbf" y no daban ningún cambio.
-
-## Reducción de dimensionalidad
-
-De las herramientas para reducción de dimensionalidad vistas, nos pareció que las siguientes eran las más adecuadas para el problema: 
-* *Recursive Feature Elimination (RFE)*: podría ser la mejor opción al ir eliminando recursivamente lo que se considere menos importante bajo un parámetro, pero es computacionalmente muy costoso. 
-* *Mutual information (MI)*: mide la dependencia entre las variables y eliminaría características dependientes redundantes.
-* *Chi cuadrada*: características no negativas booleanos y mide la dependencia a la clase.
-* *SVD truncada (LSA)*: reducción lineal mediante la descomposición de valores singulares truncados (SVD)
-
+"""
 * **Mutual information (MI)**:
 """
 
 # Reducción de dimensión con MI
+print("Resultados de Mutual information")
 reducMi = SelectKBest(mutual_info_classif, k = 700)
 Xtrain_Mi = reducMi.fit_transform(train_data, train_class)
 Xtest_Mi = reducMi.transform(test_data)
@@ -140,50 +112,6 @@ svm_classifier.fit(Xtrain_Mi, train_class)
 Ypred = svm_classifier.predict(Xtest_Mi)
 
 analysis(Ypred, test_class)
-
-"""* **Chi cuadrada**:"""
-
-# Reducción de dimensión con Chi2
-reducChi = SelectKBest(chi2, k = 700)
-print(train_data.shape)
-Xtrain_Chi2 = reducChi.fit_transform(train_data, train_class)
-Xtest_Chi2 = reducChi.transform(test_data)
-print(Xtrain_Chi2.shape)
-
-# Entrenar el modelo
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(Xtrain_Chi2, train_class)
-
-Ypred = svm_classifier.predict(Xtest_Chi2)
-
-analysis(Ypred, test_class)
-
-"""* **SVD truncada (LSA)**:"""
-
-# Reducción de dimensión con LSA a 700 dimensiones 
-reducSVD = TruncatedSVD(n_components = 700, random_state = 42) 
-Xtrain_SVD = reducSVD.fit_transform(train_data)
-Xtest_SVD = reducSVD.transform(test_data)
-
-# Entrenar el modelo
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(Xtrain_SVD, train_class)
-
-Ypred = svm_classifier.predict(Xtest_SVD)
-
-analysis(Ypred, test_class)
-
-"""- **RFE**"""
-
-# Reducción de dimensión 
-estimator = SVC(kernel = "linear")
-rfe = RFE(estimator = estimator, n_features_to_select = 700, step = 500, verbose = 0)
-
-# Entrenar el modelo
-rfe.fit(train_data, train_class)
-# Predecir clases de datos prueba
-Ypred = rfe.predict(test_data)
-
 """La reducción de dimensionalidad fue menos efectiva de lo esperado y con resultados muy similares entre diferentes métodos (e incluso similares con una clasificación sin alteración). Aún así, la reducción hecha con *Mutual Information* dio mejores resultados para la clase minoritaria que se trata resaltar.
 
 ## Técnicas para desbalanceo
@@ -222,6 +150,7 @@ print(classification_report(Ypred, test_class, target_names = ['A', 'I']) + '\n'
 
 analysis(Ypred, test_class)
 
+print(Ypred[:50], test_class[:50])
 """**Selección de prototipos controlado**
 
 
@@ -257,7 +186,7 @@ svm_classifier.fit(x_resampled_Nearmiss2, y_resampled_Nearmiss2)
 Ypred = svm_classifier.predict(Xtest_Mi)
 
 analysis(Ypred, test_class)
-
+print(Ypred[:50], test_class[:50])
 """**Selección de prototipos por limpieza**
 
 
@@ -277,7 +206,7 @@ svm_classifier.fit(x_resampled_ENN, y_resampled_ENN)
 Ypred = svm_classifier.predict(Xtest_Mi)
 
 analysis(Ypred, test_class)
-
+print(Ypred[:50], test_class[:50])
 """#### OVERSAMPLING
 
 **Aleatorio**
@@ -299,7 +228,7 @@ svm_classifier.fit(x_resampled_SMOTE, y_resampled_SMOTE)
 Ypred = svm_classifier.predict(Xtest_Mi)
 
 analysis(Ypred, test_class)
-
+print(Ypred[:50], test_class[:50])
 """- *Adaptive Synthetic Sampling Approach (ADASYN)*: Genera ejemplos cerca de los originales mal clasificados por un clasificador k-Nearest Neighbors (kNN)
 
 """
@@ -316,7 +245,7 @@ svm_classifier.fit(x_resampled_ADASYN, y_resampled_ADASYN)
 Ypred = svm_classifier.predict(Xtest_Mi)
 
 analysis(Ypred, test_class)
-
+print(Ypred[:50], test_class[:50])
 
 
 
