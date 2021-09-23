@@ -61,7 +61,7 @@ test_data = []
 
 for lines in test_set:
   lines = lines.replace("\n","")
-  l = lines.split(",")[1:]
+  l = lines.split(",")
   l = [int(i) for i in l]
   test_data.append(l)
 test_class = [i.replace("\n","") for i in test_class]
