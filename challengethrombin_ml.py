@@ -31,7 +31,7 @@ from sklearn.feature_selection import chi2, SelectKBest, mutual_info_classif
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_selection import RFE
 
-from imblearn.under_sampling import NearMiss, ClusterCentroids, EditedNearestNeighbours, ALLKNN
+from imblearn.under_sampling import NearMiss, ClusterCentroids, EditedNearestNeighbours, AllKNN
 from imblearn.over_sampling import SMOTE, ADASYN
 
 # Función del análisis de rendimiento 
