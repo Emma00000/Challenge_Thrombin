@@ -31,7 +31,7 @@ from sklearn.feature_selection import chi2, SelectKBest, mutual_info_classif
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_selection import RFE
 
-from imblearn.under_sampling import NearMiss, ClusterCentroids, EditedNearestNeighbours
+from imblearn.under_sampling import NearMiss, ClusterCentroids, EditedNearestNeighbours, ALLKNN
 from imblearn.over_sampling import SMOTE, ADASYN
 
 # Función del análisis de rendimiento 
@@ -95,158 +95,15 @@ print('Proporciones en los datos:')
 print(sorted(Counter(train_class).items()))
 print(sorted(Counter(test_class).items()))
 
-"""
-* **Mutual information (MI)**:
-"""
+allknn = AllKNN()
+X_resampled, y_resampled = allknn.fit_resample(train_data, test_class)
 
-# Reducción de dimensión con MI
-print("Resultados de Mutual information")
-reducMi = SelectKBest(mutual_info_classif, k = 700)
-Xtrain_Mi = reducMi.fit_transform(train_data, train_class)
-Xtest_Mi = reducMi.transform(test_data)
+print(sorted(Counter(y_resampled).items()))
 
-# Entrenar el modelo
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(Xtrain_Mi, train_class)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
+estimator = SVC(kernel="linear")
+#Reducimos las dimensiones a 50 de 150 en 150
+rfe = RFE(estimator=estimator,n_features_to_select=500, step=600,verbose=0)
+rfe.fit(X_resampled, y_resampled)
+Ypred=rfe.predict(test_data)
 
 analysis(Ypred, test_class)
-"""La reducción de dimensionalidad fue menos efectiva de lo esperado y con resultados muy similares entre diferentes métodos (e incluso similares con una clasificación sin alteración). Aún así, la reducción hecha con *Mutual Information* dio mejores resultados para la clase minoritaria que se trata resaltar.
-
-## Técnicas para desbalanceo
-
-#### UNDERSAMPLING
-
-**Generación de prototipos**
-
-
-Reduce el número de ejemplos en la clase usando ejemplos distintos a los ejemplos originales
-
-- *Cluster centroids*: Usa los centroides del agrupamiento k-means en lugar de los ejemplos originales
-"""
-
-# Cluster centroids 
-x_resampled_Cluster, y_resampled_Cluster = ClusterCentroids().fit_resample(Xtrain_Mi, train_class)
-print(sorted(Counter(y_resampled_Cluster).items()))
-
-print(len(x_resampled_Cluster),"  ",len(y_resampled_Cluster))
-
-# Entrenar el modelo y predecir
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(x_resampled_Cluster, y_resampled_Cluster)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
-
-print('\nAccuracy: {}\n'.format(accuracy_score(Ypred, test_class)))
-print('Precision: {}\n'.format(precision_score(Ypred, test_class, average = 'weighted')))
-print('Recall: {}\n'.format(recall_score(Ypred, test_class, average = 'weighted')))
-print('F-score: {}\n'.format(f1_score(Ypred, test_class, average = 'weighted')))
-
-print('\nConfusion matrix: \n')
-print(str(confusion_matrix(Ypred, test_class)) + '\n')
-print('Classification report: \n')
-print(classification_report(Ypred, test_class, target_names = ['A', 'I']) + '\n')
-
-analysis(Ypred, test_class)
-
-print(Ypred[:50], test_class[:50])
-"""**Selección de prototipos controlado**
-
-
-Reduce el número de ejemplos en la clase usando los ejemplos originales, y es controlado porque se especifica el número de ejemplos
-
-- *NearMiss*: Usa algoritmo de vecinos cercanos (nearest neighbors)
-
-        - NearMiss-1: ejemplos de clase mayoritaria con la menor distancia media a los más cercanos de la clase minoritaria
-
-        - NearMiss-2: ejemplos de clase mayoritaria con la menor distancia media a los más lejanos de la clase minoritaria
-"""
-
-# NearMiss-1
-x_resampled_Nearmiss1, y_resampled_Nearmiss1 = NearMiss(version = 1).fit_resample(Xtrain_Mi, train_class)
-print(sorted(Counter(y_resampled_Nearmiss1).items()))
-
-# Entrenar el modelo y predecir
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(x_resampled_Nearmiss1, y_resampled_Nearmiss1)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
-
-analysis(Ypred, test_class)
-
-# NearMiss-2
-x_resampled_Nearmiss2, y_resampled_Nearmiss2 = NearMiss(version = 2).fit_resample(Xtrain_Mi, train_class)
-print(sorted(Counter(y_resampled_Nearmiss2).items()))
-
-# Entrenar el modelo y predecir
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(x_resampled_Nearmiss2, y_resampled_Nearmiss2)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
-
-analysis(Ypred, test_class)
-print(Ypred[:50], test_class[:50])
-"""**Selección de prototipos por limpieza**
-
-
-Reduce el número de ejemplos en la clase usando los ejemplos originales, y es por limpieza porque se especifica el número de ejemplos, sólo se eliminan los casos irregulares de clases.
-
-- *Edited Nearest Neighbours*: Aplica el algoritmo de vecinos cercanos a  cada instancia de la clase mayoritaria y elimina aquellos cuyos vecinos no pertenezcan a la misma (todos o la mayoría)
-"""
-
-# Editec Nearest Neighbours
-x_resampled_ENN, y_resampled_ENN = EditedNearestNeighbours().fit_resample(Xtrain_Mi, train_class)
-print(sorted(Counter(y_resampled_ENN).items()))
-
-# Entrenar el modelo y predecir
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(x_resampled_ENN, y_resampled_ENN)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
-
-analysis(Ypred, test_class)
-print(Ypred[:50], test_class[:50])
-"""#### OVERSAMPLING
-
-**Aleatorio**
-
-
-Generación de nuevos ejemplos de manera aleatoria con reemplazo (se mantienen los ejemplos originales)
-
-- *Synthetic Minority Oversampling Technique (SMOTE)*: SMOTE regular: selecciona aleatoriamente el ejemplo inicial
-"""
-
-# SMOTE 
-x_resampled_SMOTE, y_resampled_SMOTE = SMOTE().fit_resample(Xtrain_Mi, train_class)
-print(sorted(Counter(y_resampled_SMOTE).items()))
-
-# Entrenar el modelo y predecir
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(x_resampled_SMOTE, y_resampled_SMOTE)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
-
-analysis(Ypred, test_class)
-print(Ypred[:50], test_class[:50])
-"""- *Adaptive Synthetic Sampling Approach (ADASYN)*: Genera ejemplos cerca de los originales mal clasificados por un clasificador k-Nearest Neighbors (kNN)
-
-"""
-
-# ADASYN 
-x_resampled_ADASYN, y_resampled_ADASYN = ADASYN().fit_resample(Xtrain_Mi, train_class)
-print(sorted(Counter(y_resampled_ADASYN).items()))
-
-
-# Entrenar el modelo y predecir
-svm_classifier = SVC(kernel = "linear")
-svm_classifier.fit(x_resampled_ADASYN, y_resampled_ADASYN)
-
-Ypred = svm_classifier.predict(Xtest_Mi)
-
-analysis(Ypred, test_class)
-print(Ypred[:50], test_class[:50])
-
-
-
-
