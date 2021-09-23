@@ -96,7 +96,7 @@ print(sorted(Counter(train_class).items()))
 print(sorted(Counter(test_class).items()))
 
 allknn = AllKNN()
-X_resampled, y_resampled = allknn.fit_resample(train_data, test_class)
+X_resampled, y_resampled = allknn.fit_resample(train_data, train_class)
 
 print(sorted(Counter(y_resampled).items()))
 
