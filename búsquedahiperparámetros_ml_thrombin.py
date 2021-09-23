@@ -90,13 +90,13 @@ print(sorted(Counter(test_class).items()))
 # SMOTE 
 
 print('\nSMOTE: \n')
-x_resampled_SMOTE, y_resampled_SMOTE = SMOTE().fit_resample(train_data, train_class)
+x_resampled_SMOTE, y_resampled_SMOTE = SMOTE(n_jobs=20).fit_resample(train_data, train_class)
 print(sorted(Counter(y_resampled_SMOTE).items()))
 
 # Reducción de dimensión con Chi2
 print('\nReducción de dimensión con Chi2: \n')
 
-reducChi = SelectKBest(chi2, k = 700)
+reducChi = SelectKBest(chi2, k = 700, n_jobs=20)
 print(train_data.shape)
 Xtrain_Chi2 = reducChi.fit_transform(x_resampled_SMOTE, y_resampled_SMOTE)
 Xtest_Chi2 = reducChi.transform(test_data)
@@ -106,7 +106,7 @@ print('\n\n\nBÚSQUEDA EN DATOS BALANCEADOS CON KERNEL LINEAL: \n')
 
 # Búsqueda de hiperparámetros con cross-validation, SVC linear, 80 iteraciones y métrica con f1_score ponderada
 param_clf = RandomizedSearchCV(cv = 3, estimator = SVC(probability = True, random_state = 19), 
-                   n_iter = 80, n_jobs = -1, 
+                   n_iter = 80, n_jobs = 20, 
                    param_distributions = {'C': scipy.stats.expon(scale = 100), 
                                           'gamma': scipy.stats.expon(scale = .1),
                                           'kernel': ['linear']}
@@ -119,46 +119,3 @@ param_clf.fit(Xtrain_Chi2, y_resampled_SMOTE)
 Ypred = param_clf.predict(Xtest_Chi2)
 
 analysis(Ypred, test_class)
-
-
-
-"""# Búsqueda en originales """
-
-print('\n\n\nBÚSQUEDA EN DATOS ORIGINALES CON KERNEL LINEAL: \n')
-
-# Búsqueda de hiperparámetros con cross-validation, SVC linear, 80 iteraciones y métrica con f1_score ponderada
-param_clf = RandomizedSearchCV(cv = 3, estimator = SVC(probability = True, random_state = 19), 
-                   n_iter = 80, n_jobs = -1, 
-                   param_distributions = {'C': scipy.stats.expon(scale = 100), 
-                                          'gamma': scipy.stats.expon(scale = .1),
-                                          'kernel': ['linear'], 
-                                          'class_weight':['balanced', None]}
-                               , random_state = 19, 
-                   scoring = make_scorer(f1_score))
-
-# Entrenar el modelo para datos originales
-param_clf.fit(train_data, train_class)
-
-Ypred = param_clf.predict(test_data)
-
-analysis(Ypred, test_class)
-
-print('\n\n\nBÚSQUEDA EN DATOS ORIGINALES CON KERNEL RBF: \n')
-
-# Búsqueda de hiperparámetros con cross-validation, SVC rbf, 80 iteraciones y métrica con f1_score ponderada
-param_clf = RandomizedSearchCV(cv = 3, estimator = SVC(probability = True, random_state = 19), 
-                   n_iter = 80, n_jobs = -1, 
-                   param_distributions = {'C': scipy.stats.expon(scale = 100), 
-                                          'gamma': scipy.stats.expon(scale = .1),
-                                          'kernel': ['rbf'], 
-                                          'class_weight':['balanced', None]}
-                               , random_state = 19, 
-                   scoring = make_scorer(f1_score))
-
-# Entrenar el modelo para datos originales
-param_clf.fit(train_data, train_class)
-
-Ypred = param_clf.predict(test_data)
-
-analysis(Ypred, test_class)
-
