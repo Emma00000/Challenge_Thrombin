@@ -96,7 +96,7 @@ print(sorted(Counter(y_resampled_SMOTE).items()))
 # Reducción de dimensión con Chi2
 print('\nReducción de dimensión con Chi2: \n')
 
-reducChi = SelectKBest(chi2, k = 700, n_jobs=20)
+reducChi = SelectKBest(chi2, k = 700)
 print(train_data.shape)
 Xtrain_Chi2 = reducChi.fit_transform(x_resampled_SMOTE, y_resampled_SMOTE)
 Xtest_Chi2 = reducChi.transform(test_data)
