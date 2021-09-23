@@ -42,7 +42,7 @@ print('Se recuperaron: ', str(len(train_set)), ' líneas en el vector de entrena
 
 
 #Cargamos el data set de prueba
-with open('./Thrombin-2/Thrombin.testset', 'r') as file:
+with open('./Thrombin_2/Thrombin.testset', 'r') as file:
   test_set = file.readlines()
 print('Se recuperaron: ', str(len(test_set)), ' líneas en el vector de prueba.')
 
